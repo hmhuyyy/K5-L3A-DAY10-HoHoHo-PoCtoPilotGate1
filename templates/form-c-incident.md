@@ -30,9 +30,9 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | R-S5-before-20261118-015334-dc805c | S5 · base | Baseline trên gói sự cố S5 (chưa có cổng) | 0.8333 [0.70; 0.9667] | 0.8333 | 890.000đ · 20 lỗi · 0 PII | 0.4000 | Bộc lộ 3 vấn đề của CFO: hoàn trùng 890k, kho HCM-B2B tốn 11.326đ > làm tay, LLM cao nhất 2.412đ > 1.500đ, ROI âm -0.33. |
-| 2 | R-S5-prepared-20261118-015334-dc805c | S5 · prepared | Đánh giá gói S5 với cổng vòng 1 đã chốt (adfce180) | 0.9667 [0.90; 1.0] | 0.9667 | 0đ · 0 lỗi · 0 PII | 0.4000 | Cổng vòng 1 chặn hoàn toàn 890k hoàn sai và 20 lỗi oan, nhưng S5-21 hỏng do hoàn thiếu (under-refund 60k) và LLM đắt nhất 2.466đ. |
-| 3 | R-S5-after-20261118-015335-dc805c | S5 · after | Sửa write_gate (hoàn bù remaining), pre_guard (chặn trần LLM 1500đ), thu hẹp loại kho HCM-B2B | 1.0 [1.0; 1.0] | 1.0 | 0đ · 0 lỗi · 0 PII | 0.1667 | Đạt 100% visible test, sạch hoàn sai/thiếu, LLM đắt nhất 765đ < 1500đ, chi phí 3.980đ < 10.000đ, ROI 1.51. |
+| 1 | R-S5-before-20261118-172526-b21bc7 | S5 · base | Baseline trên gói sự cố S5 (chưa có cổng) | 0.8333 [0.70; 0.9667] | 0.8333 | 890.000đ · 20 lỗi · 0 PII | 0.4000 | Bộc lộ 3 vấn đề của CFO: hoàn trùng 890k, kho HCM-B2B tốn 11.326đ > làm tay, LLM cao nhất 2.412đ > 1.500đ, ROI âm -0.33. |
+| 2 | R-S5-prepared-20261118-172527-b21bc7 | S5 · prepared | Đánh giá gói S5 với cổng vòng 1 đã chốt (adfce180) | 0.9667 [0.90; 1.0] | 0.9667 | 0đ · 0 lỗi · 0 PII | 0.4000 | Cổng vòng 1 chặn hoàn toàn 890k hoàn sai và 20 lỗi oan, nhưng S5-21 hỏng do hoàn thiếu (under-refund 60k) và LLM đắt nhất 2.466đ. |
+| 3 | R-S5-after-20261118-172527-b21bc7 | S5 · after | Sửa write_gate (hoàn bù remaining), pre_guard (chặn trần LLM 1500đ), thu hẹp loại kho HCM-B2B | 1.0 [1.0; 1.0] | 1.0 | 0đ · 0 lỗi · 0 PII | 0.1667 | Đạt 100% visible test, sạch hoàn sai/thiếu, LLM đắt nhất 765đ < 1500đ, chi phí 3.980đ < 10.000đ, ROI 1.51. |
 | 4 | R-base-after-20261118-015441-dc805c | base · after | Kiểm tra không regression trên bộ nền sau khi sửa S5 | 1.0 [1.0; 1.0] | 1.0 | 0đ · 0 lỗi · 0 PII | 0.2273 | Bộ nền đạt tuyệt đối 110/110, không ca mới hỏng, ROI 1.24, chi phí 4.456đ/ticket. |
 
 ---
@@ -47,7 +47,7 @@ Chạy **trước khi sửa bất cứ thứ gì**:
 python3 -m lab10.grade --incident Sx
 ```
 
-- Mã lần chạy grade: `R-S5-grade-20261118-015332-dc805c` · base: `R-S5-before-20261118-015334-dc805c` · prepared: `R-S5-prepared-20261118-015334-dc805c`
+- Mã lần chạy grade: `R-S5-grade-20261118-172525-b21bc7` · base: `R-S5-before-20261118-172526-b21bc7` · prepared: `R-S5-prepared-20261118-172527-b21bc7`
 - Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): Cổng vòng 1 đã **loại bỏ hoàn sai 890.000 đ** (base 890k → prepared 0), **loại bỏ 20 lỗi ghi oan hãng** (base 20 → prepared 0), tăng pass_rate từ 0.8333 → 0.9667 (visible). Trên bộ nền: hoàn sai từ 20.000 đ → 0, wrongful_carrier_faults từ 1 → 0.
 - Khối kinh doanh và vận hành còn dòng nào vượt trần: **(1)** tiền LLM ticket đắt nhất 2466 đ > trần 1500 đ; **(2)** kho HCM-B2B: mỗi ticket tốn 11326 đ > làm tay 10000 đ; **(3)** pass_rate visible còn 0.9667 < 1.0 (ticket S5-21 bị hoàn thiếu 60k do cổng deny cứng).
 
@@ -266,7 +266,7 @@ Vì sao có thể sai: **Thực tế ngoài đời: (1) Khách hàng sốt ruộ
 
 <a id="c6"></a>
 
-## C6 · Câu 3.4 · Fault tree TRƯỚC khi sửa (mã lần chạy: `R-S5-before-20261118-015738-dc805c`)
+## C6 · Câu 3.4 · Fault tree TRƯỚC khi sửa (mã lần chạy: `R-S5-before-20261118-172526-b21bc7`)
 
 **Khung tư duy.** Đi từ **tác hại** ngược về nguyên nhân, không đi từ lỗi mình tình cờ thấy. Mỗi tầng hỏi "điều gì phải xảy
 ra thì điều trên mới xảy ra", nối bằng **HOẶC** (một trong các nhánh là đủ) hoặc **VÀ** (phải đồng thời). Một biện pháp tốt
@@ -316,9 +316,9 @@ python3 -m lab10.grade --incident Sx
 
 | Nhánh fault tree | Nguyên nhân | Chỗ sửa (hàm + nhánh trong `guards.py`, hoặc khoá trong `operating_gates.json`) | Tầng (phát hiện / chặn / giới hạn thiệt hại / vận hành) | GIẢM khả năng hay NGĂN hẳn? Vì sao | Mã lần chạy sau khi sửa |
 |---|---|---|---|---|---|
-| Hoàn trùng / hoàn thiếu | Chỉ nhìn cờ REFUNDED thì bỏ sót sổ cái; chặn mọi dòng có sổ cái lại từ chối hoàn từng phần S5-21 | write_gate / issue_refund: paid=sum(ledger_rows(order_id)); remaining=max(0, entitlement-paid); deny nếu 0, modify phần còn thiếu nếu >0 | Chặn / giới hạn thiệt hại | Ngăn vượt tổng quyền lợi trong mô phỏng tuần tự; production cần transaction/khóa và idempotency key để tránh race | R-S5-after-20261118-015738-dc805c |
-| LLM vượt trần | Đọc ticket dài và checkout_note trước khi biết chi phí toàn luồng; budget 8000 cao hơn trần Ops 1500 | pre_guard: lấy min trần Ops/config, cộng phí nền + extract theo độ dài + 2 policy checks + confirm + decision_note; escalate trước LLM nếu vượt | Phòng ngừa / chuyển người | Ngăn vượt theo biểu giá và luồng mock hiện tại; giá thật/token thật cần đo lại, không cắt nội dung làm mất bằng chứng | R-S5-after-20261118-015738-dc805c |
-| Kho sỉ không sinh lời | Code-only vẫn khiến HCM-B2B tốn 10382đ/ticket > làm tay 10000đ | business.pilot_scope: warehouse, HN/HCM/DN/CT; loại HCM-B2B theo phân công PO | Phạm vi vận hành / kinh doanh | Loại tiền máy thừa cho kho sỉ bằng luồng làm tay; vẫn giữ 60% độ phủ S5, 100% bộ nền | R-S5-after-20261118-015738-dc805c |
+| Hoàn trùng / hoàn thiếu | Chỉ nhìn cờ REFUNDED thì bỏ sót sổ cái; chặn mọi dòng có sổ cái lại từ chối hoàn từng phần S5-21 | write_gate / issue_refund: paid=sum(ledger_rows(order_id)); remaining=max(0, entitlement-paid); deny nếu 0, modify phần còn thiếu nếu >0 | Chặn / giới hạn thiệt hại | Ngăn vượt tổng quyền lợi trong mô phỏng tuần tự; production cần transaction/khóa và idempotency key để tránh race | R-S5-after-20261118-172527-b21bc7 |
+| LLM vượt trần | Đọc ticket dài và checkout_note trước khi biết chi phí toàn luồng; budget 8000 cao hơn trần Ops 1500 | pre_guard: lấy min trần Ops/config, cộng phí nền + extract theo độ dài + 2 policy checks + confirm + decision_note; escalate trước LLM nếu vượt | Phòng ngừa / chuyển người | Ngăn vượt theo biểu giá và luồng mock hiện tại; giá thật/token thật cần đo lại, không cắt nội dung làm mất bằng chứng | R-S5-after-20261118-172527-b21bc7 |
+| Kho sỉ không sinh lời | Code-only vẫn khiến HCM-B2B tốn 10382đ/ticket > làm tay 10000đ | business.pilot_scope: warehouse, HN/HCM/DN/CT; loại HCM-B2B theo phân công PO | Phạm vi vận hành / kinh doanh | Loại tiền máy thừa cho kho sỉ bằng luồng làm tay; vẫn giữ 60% độ phủ S5, 100% bộ nền | R-S5-after-20261118-172527-b21bc7 |
 
 ---
 
@@ -367,7 +367,7 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 Nguồn cho PO tính chi phí theo kho: report after `ops.segments` và `by_segment.warehouse`; HN 4277đ, HCM 712đ, DN 743đ, CT 764đ/ticket. Không dùng riêng cost_vnd (tiền máy) thay cho chi phí gồm công người và phân bổ phí trực. HCM-B2B trước thu hẹp 11326đ, sau code-only 10382đ, ngoài phạm vi ở after cuối; không báo chi phí kho bị loại là 0đ hay coi đó là kho đã sửa thành công.
 
-## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S5-after-20261118-015738-dc805c`)
+## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S5-after-20261118-172527-b21bc7`)
 
 Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [gate … hỏng]` và ghi:
 
@@ -457,11 +457,11 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 |---|---|
 | Commit ký tiêu chí | `5f494889c5db` (giống v1) |
 | Hash chốt cổng vòng 1 | `adfce180` (giống v1) |
-| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: `R-S5-before-20261118-015738-dc805c` · prepared: `R-S5-prepared-20261118-015738-dc805c` · after: `R-S5-after-20261118-015738-dc805c` |
+| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: `R-S5-before-20261118-172526-b21bc7` · prepared: `R-S5-prepared-20261118-172527-b21bc7` · after: `R-S5-after-20261118-172527-b21bc7` |
 | Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | **Không còn dòng vượt trần nào ở mốc after.** Sau khi sửa code và thu hẹp loại bỏ kho HCM-B2B: chi phí trung bình 3.980đ < làm tay 10.000đ; tiền LLM đắt nhất 765đ < trần 1.500đ; ROI 1.51; 0 ca ùn; hoàn sai 0đ; lỗi oan 0. (Ở mốc base: kho HCM-B2B tốn 11.326đ > làm tay 10.000đ, LLM max 2.412đ > 1.500đ; ở mốc prepared: LLM max 2.466đ > 1.500đ). |
 | Kho hoặc hãng có số xấu nhất: **HCM-B2B** (chi phí 11326 đ > làm tay 10000 đ). Nếu chỉ nhìn phân khúc này, quyết định có đổi không? | Có — phân khúc HCM-B2B cho ROI âm (chi phí trợ lý > chi phí làm tay). Đây là căn cứ cốt lõi dẫn đến quyết định **Thu hẹp** (loại bỏ kho HCM-B2B khỏi phạm vi pilot, chuyển đơn sỉ làm tay). |
 | Quyết định (khoanh một) | **Thu hẹp** ✅ |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-S5-grade-20261118-015737-dc805c` đạt **PASS-VISIBLE**: integrity ✅, criteria ✅, visible ✅ (pass_rate 1.0, 0 hoàn sai, 0 under-refund), regression ✅ (110/110 bộ nền đạt 1.0), monitor ✅ (6 metric mới đều sáng đèn đúng dữ liệu). |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-S5-grade-20261118-172525-b21bc7` đạt **PASS-VISIBLE**: integrity ✅, criteria ✅, visible ✅ (pass_rate 1.0, 0 hoàn sai, 0 under-refund), regression ✅ (110/110 bộ nền đạt 1.0), monitor ✅ (6 metric mới đều sáng đèn đúng dữ liệu). |
 | Bằng chứng 2 | Phân khúc kho HCM-B2B: chi phí 11.326đ/ticket > làm tay 10.000đ → nếu giữ nguyên sẽ gây lỗ vận hành. Sau khi thu hẹp loại bỏ HCM-B2B: chi phí trung bình visible giảm từ 6.083đ → 3.980đ, ROI tăng lên 1.51, độ phủ pilot đạt 0.6 (18/30 ticket/ngày). |
 | Bằng chứng 3 | Các monitor mới trong `monitors.py` hoạt động chính xác: `duplicate_refund_attempts` bắt được 20 lần cố hoàn trùng, `llm_budget_blocks` phát hiện 15 lần chặn trần LLM, `avg_cost_per_ticket_vnd` cảnh báo chi phí kho HCM-B2B trước sửa. |
 | Khớp dòng nào trong `decision_rule` đã ký? | Khớp quy tắc: Khi phát hiện phân khúc có chi phí trợ lý cao hơn làm tay và có nguy cơ vượt trần tài nguyên LLM, đội ngũ lựa chọn **Thu hẹp** phạm vi pilot về các phân khúc có lãi và ổn định đã kiểm chứng (`HN, HCM, DN, CT`), chuyển phân khúc phức tạp xử lý thủ công. |
@@ -469,11 +469,11 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 | Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | — |
 | Nếu Dừng: bài học ghi lại | — |
 | Ngày quyết định lại (trừ khi Dừng) | Sau 2 tuần chạy thử pilot thật (loại trừ B2B): đánh giá lại chi phí token thật và tỷ lệ hoàn bù để xem xét mở rộng lại cho kho sỉ. |
-| PIC ký | NguyenTruongThanh-2A202603512 (Product Owner) |
+| PIC ký | NguyenTruongThanh-2A202603512 (Operations / Legal, PIC vận hành) |
 
 **Chỉ ở v2**
 - Quyết định đổi hay giữ so với v1? Vì con số nào: **Đổi từ "Tiếp tục" (v1) sang "Thu hẹp" (v2)**. Lý do: Thẻ sự cố S5 bộc lộ kho HCM-B2B có chi phí 11.326đ/ticket > làm tay 10.000đ, tiền LLM lên đến 2.466đ > trần 1.500đ, và có nguy cơ hoàn trùng đúp. Dù after đã xử lý xong và report cho phép cân nhắc Tiếp tục, Product Owner quyết định an toàn là **Thu hẹp** để không đưa phân khúc rủi ro vào pilot thật.
-- Report tự kiểm tra: mã lần chạy `R-S5-grade-20261118-015737-dc805c` · ô còn đỏ: Không còn ô đỏ (PASS-VISIBLE).
+- Report tự kiểm tra: mã lần chạy `R-S5-grade-20261118-172525-b21bc7` · ô còn đỏ: Không còn ô đỏ (PASS-VISIBLE).
 - Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: Đỡ được toàn bộ hoàn sai (890k → 0đ) và oan hãng (20 → 0 lỗi). **Bỏ sót**: S5-21 bị hoàn thiếu (under-refund 60k do cổng vòng 1 chặn thô bạo), chi phí LLM vượt trần (2.466đ > 1.500đ), và chi phí đơn sỉ kho B2B đắt hơn làm tay.
 - Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: Report ghi **"Được phép cân nhắc 'Tiếp tục'"**. Quyết định **Thu hẹp** của bàn là một lựa chọn thận trọng và hoàn toàn hợp lệ (tiêu chí nêu rõ: Thu hẹp có lý do và có số là quyết định đạt).
 - Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: Chưa đo **chi phí thực tế khi vận hành đơn sỉ B2B bằng tay ngoài đời thực** (nếu kiểm tra phiếu xuất phức tạp tốn > 15.000đ thì trợ lý AI 11.326đ vẫn có lời). Cần đo đạc chính xác trong pilot thật trước khi quyết định mở lại cho kho B2B.
