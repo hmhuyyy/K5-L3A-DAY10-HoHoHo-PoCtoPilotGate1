@@ -404,17 +404,17 @@ bao nhiêu thời gian? (3) Có phần nào của dự án không nên làm ti�
 | Mã lần chạy dùng làm bằng chứng | base: R-base-before-20261118-145056-d2242a; prepared: R-base-prepared-20261118-151525-7c6c78 |
 | Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | Không có vi phạm trần trong report prepared; không đồng nghĩa mọi hồ sơ vận hành đã đầy đủ. |
 | Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | Mọi kho/hãng pass_rate=1.0. Nhóm kho không xác định (?) có chi phí 10.359đ/ticket, cao hơn làm tay; nếu chỉ xét nhóm này cần người xử lý và rà soát hiệu quả. Trong kho xác định, DN cao nhất: 4.646đ/ticket. |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | R-base-prepared-20261118-151525-7c6c78: 110/110 đạt; pass_rate=1.0 (CI95 [1,1]), pass_k=1.0. |
-| Bằng chứng 2 | Cùng report prepared: wrongful_refund_vnd=0, wrongful_carrier_faults=0, pii_leaks=0; T-002@55 không ghi tiền/lỗi hãng. |
-| Bằng chứng 3 | Cùng report prepared: cost_per_ticket_vnd=4456; ROI=1.24; queue_stuck=0; escalation_rate=0.2273; review_rate=0.2727 gồm kiểm mẫu. |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt phần nào, vì sao | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | Chưa có kiểm định trên gói sự cố được bốc/test ẩn; runbook và mã người duyệt cần PO/Ops xác nhận. |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Quyết định (khoanh một) | **Tiếp tục** |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | R-base-prepared-20261118-153024-7c6c78: 110/110 đạt; pass_rate=1.0 (CI95 [1.0, 1.0]), pass_k=1.0. |
+| Bằng chứng 2 | Cùng report prepared: wrongful_refund_vnd=0, wrongful_carrier_faults=0, pii_leaks=0; ticket T-002@55 được guard chặn xử lý đúng. |
+| Bằng chứng 3 | Cùng report prepared: cost_per_ticket_vnd=4456đ (< 8000đ); ROI=1.24 (> 0.2); queue_stuck=0; escalation_rate=0.2273 (< 0.25). |
+| Khớp dòng nào trong `decision_rule` đã ký? | Dòng "Tiếp tục": Mọi chỉ số bắt buộc đạt trên bộ nền, không vi phạm an toàn, ROI >= 0.2 và chi phí mỗi ticket <= 8.000đ. |
+| Nếu Thu hẹp: cắt phần nào, vì sao | Không áp dụng vì toàn bộ chỉ số bắt buộc và ngưỡng vận hành đều đạt. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | Không áp dụng. |
+| Nếu Dừng: bài học ghi lại | Không áp dụng. |
+| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | Chưa đo trên gói sự cố thực tế (incidents) và hidden tests; cần đánh giá tiếp ở Vòng 2. |
+| Ngày quyết định lại (trừ khi Dừng) | 2026-11-25 (hoặc sau khi xử lý gói sự cố Vòng 2). |
+| PIC ký | HoangMinhHuy-2A202603495 |
 
 Xong v1 thì lưu và đẩy một bản (sau mốc này không sửa cột v1):
 
