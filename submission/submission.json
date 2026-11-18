@@ -1,6 +1,11 @@
 {
-  "team": "",
-  "members": [],
+  "team": "HoHoHo",
+  "members": [
+    "HoangMinhHuy-2A202603495",
+    "BuiQuangHuy-2A202603469",
+    "NguyenManhQuyen-2A202603518",
+    "NguyenTruongThanh-2A202603512"
+  ],
   "incident": "",
   "decision_v1": "",
   "decision_v2": "",
