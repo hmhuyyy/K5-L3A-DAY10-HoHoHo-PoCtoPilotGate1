@@ -1,5 +1,5 @@
 {
- "collected_at": "2026-11-18T17:35:49",
+ "collected_at": "2026-11-18T17:37:14",
  "incident": "S5",
  "run_ids": {},
  "grade_run_id": null,
@@ -18,7 +18,7 @@
   "config/switches.json": "7f6b75433f65640f6610a7930ecefae27fc8b1891634803815ef48d9c4a0b457",
   "docs/form-a-criteria.md": "bb50e5da2aee39d49b924af24dc57904b70a532f635f1f578a945cda7a94faff",
   "docs/form-b-evaluation-gates.md": "b868ce0ef1051c36412e7e3e3331eab92921e851bbf4c664fc0d320086a7606c",
-  "docs/form-c-incident.md": "33f6713063f096ecf8c2b4853f82e5151b5ea834fb6089ba292c584de4f0bb47",
+  "docs/form-c-incident.md": "e1593ef04bc08debce905b77f95bb5d899074898d28870b3941d1a623bf1c2aa",
   "runs/grade-report.json": "3b7d0e751e3702749264b2cad1aba9208208b5e891cbe43783658ef94e7d7a22",
   "runs/grade-report.md": "847aa9a1d1869bd7b5a37711bcf50a6d78b4fc87729a8e306bd74fb238ef7892",
   "runs/journal.jsonl": "2159b52d9a3314c17cd230853dde31bd38fcbe9d23ddf3ce722b9d7309c4cb3c",
