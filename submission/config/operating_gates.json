@@ -6,15 +6,10 @@
     "pilot_scope": {
       "mode": "warehouse",
       "warehouses": [
-        "WH-HN-01",
-        "WH-SG-01",
-        "CT",
-        "DN",
+        "HN",
         "HCM",
-        "HN"
-      ],
-      "excluded_warehouses": [
-        "HCM-B2B"
+        "DN",
+        "CT"
       ],
       "percent": 100
     },
