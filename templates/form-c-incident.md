@@ -35,6 +35,8 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 | 3 | R-S5-after-20261118-172527-b21bc7 | S5 · after | Sửa write_gate (hoàn bù remaining), pre_guard (chặn trần LLM 1500đ), thu hẹp loại kho HCM-B2B | 1.0 [1.0; 1.0] | 1.0 | 0đ · 0 lỗi · 0 PII | 0.1667 | Đạt 100% visible test, sạch hoàn sai/thiếu, LLM đắt nhất 765đ < 1500đ, chi phí 3.980đ < 10.000đ, ROI 1.51. |
 | 4 | R-base-after-20261118-015441-dc805c | base · after | Kiểm tra không regression trên bộ nền sau khi sửa S5 | 1.0 [1.0; 1.0] | 1.0 | 0đ · 0 lỗi · 0 PII | 0.2273 | Bộ nền đạt tuyệt đối 110/110, không ca mới hỏng, ROI 1.24, chi phí 4.456đ/ticket. |
 
+**Ghi chú nguồn mã chạy và mốc thời gian.** (1) `runs/journal.jsonl` của từng máy là riêng. `submission/runs/journal.jsonl` đã gộp journal của các máy đã push và bỏ trùng theo `run_id`. Một số mã chạy được trích trong Phiếu B và Phiếu C (các hậu tố `7c6c78`, `de8e77`, `8a2954`, `831c3b`, `ab0e5b`, `790008`) được chạy trên máy từng thành viên và journal của các lần chạy đó không nằm trong repo. Ba mốc dùng làm bằng chứng quyết định v2 (`R-S5-before/prepared/after-…-b21bc7`) có đủ report và journal trong `submission/runs/`. (2) Dòng `R-base-before-20261117-235031-7fa35b` ghi giờ 23:50 ngày 17/11, sớm hơn lúc ký tiêu chí (14:36:18 ngày 18/11). Journal không ghi múi giờ nên nhiều khả năng đây là giờ máy một thành viên chưa đặt GMT+7; nhóm cần người chạy lệnh đó xác nhận. Lần đo baseline theo giờ GMT+7 là `R-base-before-20261118-143735-d2242a` lúc 14:37, sau lúc ký 14:36:18 và sau commit ký `596a3ad` (14:40 là giờ commit).
+
 ---
 
 <a id="c1"></a>
