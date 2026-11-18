@@ -19,6 +19,7 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+<<<<<<< HEAD
 def avg_cost_per_ticket_vnd(trials):
     """Chi phí LLM trung bình mỗi ticket (đ).
     Sáng đèn khi kho B2B hoặc ticket dài đẩy chi phí vượt ngưỡng làm tay.
@@ -42,5 +43,30 @@ MONITORS = {
     "escalation_rate": escalation_rate,          # có sẵn; KHÔNG tính là metric mới của đội
     "avg_cost_per_ticket_vnd": avg_cost_per_ticket_vnd,       # Mới · S5: chi phí LLM trung bình
     "pct_tickets_over_llm_cap": pct_tickets_over_llm_cap,     # Mới · S5: tỉ lệ ticket vượt trần LLM
+=======
+def duplicate_refund_attempts(trials):
+    """Blocked attempts after an order's total entitlement has already been paid."""
+    return sum(e.get("type") == "guard" and e.get("kind") == "duplicate_refund_blocked"
+               for t in trials for e in t.get("events", []))
+
+
+def llm_budget_blocks(trials):
+    """Tickets routed to humans before an estimated over-budget model call."""
+    return sum(any(e.get("type") == "guard" and e.get("kind") == "llm_budget_blocked"
+                   for e in t.get("events", [])) for t in trials)
+
+
+def partial_refund_adjustments(trials):
+    """Writes reduced to unpaid entitlement; distinct from blocked duplicates."""
+    return sum(e.get("type") == "guard" and e.get("kind") == "partial_refund_adjusted"
+               for t in trials for e in t.get("events", []))
+
+
+MONITORS = {
+    "escalation_rate": escalation_rate,
+    "duplicate_refund_attempts": duplicate_refund_attempts,
+    "llm_budget_blocks": llm_budget_blocks,
+    "partial_refund_adjustments": partial_refund_adjustments,
+>>>>>>> ca5e74685f14994af6b448a7b526724d55c40b13
 }
 STARTER_MONITORS = ("escalation_rate",)

@@ -78,6 +78,13 @@ Kỹ sư cổng (AI Engineer - Người 2).
 Một điều học được: Guard tầng ngoài model là bắt buộc để ngăn chặn các hành vi không thể đảo ngược như xuất tiền quỹ hay ghi phạt pháp lý.
 Một điều còn chưa chắc: Làm thế nào để guard không làm tăng quá nhiều độ trễ xử lý (latency) của luồng tổng thể.
 
+### Bổ sung đóng góp vòng 2 — S5
+
+- Sửa guard theo quyền lợi còn lại thay vì chặn toàn bộ đơn có sổ cái; chặn hoàn trùng và retry, bảo toàn ca hoàn bù S5-21.
+- Ước tính chi phí toàn luồng trước LLM, bao gồm checkout_note và retry; thêm ba monitor duplicate_refund_attempts, llm_budget_blocks, partial_refund_adjustments.
+- Áp dụng scope HN/HCM/DN/CT theo phân công PO; chạy grade S5 PASS-VISIBLE (`R-S5-grade-20261118-163306-de8e77`), regression 110/110, public tests 13/13.
+- Dùng Codex hỗ trợ đọc trace, triển khai code, chạy kiểm chứng và ghi bằng chứng C7/C8. Chưa chạy hidden tests.
+
 ## NguyenManhQuyen-2A202603518
 
 ### Phần việc phụ trách
