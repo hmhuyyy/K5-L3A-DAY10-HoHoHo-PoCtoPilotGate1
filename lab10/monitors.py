@@ -19,7 +19,28 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def duplicate_refund_attempts(trials):
+    """Blocked attempts after an order's total entitlement has already been paid."""
+    return sum(e.get("type") == "guard" and e.get("kind") == "duplicate_refund_blocked"
+               for t in trials for e in t.get("events", []))
+
+
+def llm_budget_blocks(trials):
+    """Tickets routed to humans before an estimated over-budget model call."""
+    return sum(any(e.get("type") == "guard" and e.get("kind") == "llm_budget_blocked"
+                   for e in t.get("events", [])) for t in trials)
+
+
+def partial_refund_adjustments(trials):
+    """Writes reduced to unpaid entitlement; distinct from blocked duplicates."""
+    return sum(e.get("type") == "guard" and e.get("kind") == "partial_refund_adjusted"
+               for t in trials for e in t.get("events", []))
+
+
 MONITORS = {
-    "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "escalation_rate": escalation_rate,
+    "duplicate_refund_attempts": duplicate_refund_attempts,
+    "llm_budget_blocks": llm_budget_blocks,
+    "partial_refund_adjustments": partial_refund_adjustments,
 }
 STARTER_MONITORS = ("escalation_rate",)

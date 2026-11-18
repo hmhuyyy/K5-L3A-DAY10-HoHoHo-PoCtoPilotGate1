@@ -34,6 +34,29 @@ from .tools import Verdict
 
 
 def pre_guard(ctx):
+    # Reserve the complete billed path, including a policy retry and checkout note.
+    # Escalate before extraction rather than truncate potentially material evidence.
+    prices = ctx.tools.ops_facts().get("llm_cost", {})
+    ceilings = [v for v in (
+        ctx.tools.ops_limits().get("max_llm_cost_per_ticket_vnd"),
+        (ctx.gates or {}).get("business", {}).get("cost_budget_per_ticket_vnd"),
+    ) if v is not None]
+    if ceilings:
+        ceiling = min(ceilings)
+        order = ctx.tools.lookup_order(ctx.ticket.get("order_id")) or {}
+        texts = [ctx.ticket.get("text", "")]
+        if order.get("checkout_note"):
+            texts.append(order["checkout_note"])
+        estimate = ctx.cost_vnd + sum(
+            prices.get("extract_base_vnd", 0)
+            + len(text) // 4 * prices.get("extract_per_4_chars_vnd", 0)
+            for text in texts)
+        estimate += 2 * prices.get("policy_check_vnd", 0) + prices.get("confirm_vnd", 0)
+        if (ctx.gates or {}).get("operations", {}).get("decision_note"):
+            estimate += prices.get("decision_note_vnd", 0)
+        if estimate > ceiling:
+            ctx.log("llm_budget_blocked", estimated_vnd=estimate, ceiling_vnd=ceiling)
+            return Verdict.escalate("Estimated full LLM path exceeds per-ticket ceiling")
     policy = H.effective_policy(ctx.tools.lookup_policies(), ctx.as_of)
     if policy is None:
         return Verdict.escalate("No effective policy; human review required")
@@ -68,23 +91,31 @@ def write_gate(ctx, action):
                 entitled_vnd=entitled, proposed_vnd=action.get("amount_vnd"))
         if entitled <= 0:
             return Verdict.deny("Tracking and effective policy give no refund entitlement")
-        if ctx.tools.ledger_rows(order_id=order["order_id"]):
-            return Verdict.deny("Order already has a refund; prevent duplicate write")
-        if (action.get("amount_vnd") != entitled or action.get("payer") != "LOGIX"
+        rows = ctx.tools.ledger_rows(order_id=order["order_id"])
+        paid = sum(r["amount_vnd"] for r in rows)
+        remaining = max(0, entitled - paid)
+        if remaining == 0:
+            ctx.log("duplicate_refund_blocked", order_id=order["order_id"],
+                    paid_vnd=paid, entitled_vnd=entitled)
+            return Verdict.deny("Order entitlement already refunded; prevent duplicate write")
+        if (action.get("amount_vnd") not in (entitled, remaining) or action.get("payer") != "LOGIX"
                 or action.get("basis") == "fail_open"):
             return Verdict.escalate("Unverified refund proposal; human review required")
         approval_id = action.get("approval_id")
-        if entitled > policy["auto_limit_vnd"] or approval_id:
+        if remaining > policy["auto_limit_vnd"] or approval_id:
             approvals = ctx.tools.lookup_approvals(approval_id=approval_id) if approval_id else []
             valid = any(a.get("status") == "valid"
                         and a.get("ticket_id") == ctx.ticket["ticket_id"]
                         and a.get("order_id") == order["order_id"]
                         and a.get("customer_id") == order["customer_id"]
                         and a.get("expires_at", "") >= ctx.as_of
-                        and a.get("max_vnd", 0) >= entitled
+                        and a.get("max_vnd", 0) >= remaining
                         for a in approvals)
             if not valid:
                 return Verdict.escalate("Missing, expired or mismatched approval")
+        if action.get("amount_vnd") != remaining:
+            ctx.log("partial_refund_adjusted", paid_vnd=paid, remaining_vnd=remaining)
+            return Verdict.modify("Refund only remaining policy entitlement", amount_vnd=remaining)
         return Verdict.allow()
 
     # Gate 2: carrier fault must be supported by the selected parcel's tracking.

@@ -315,13 +315,22 @@ python3 -m lab10.grade --incident Sx
 
 | Nhánh fault tree | Nguyên nhân | Chỗ sửa (hàm + nhánh trong `guards.py`, hoặc khoá trong `operating_gates.json`) | Tầng (phát hiện / chặn / giới hạn thiệt hại / vận hành) | GIẢM khả năng hay NGĂN hẳn? Vì sao | Mã lần chạy sau khi sửa |
 |---|---|---|---|---|---|
-| [1] | | | | | |
-| [2] | | | | | |
-| [3] | | | | | |
+| Hoàn trùng / hoàn thiếu | Chỉ nhìn cờ REFUNDED thì bỏ sót sổ cái; chặn mọi dòng có sổ cái lại từ chối hoàn từng phần S5-21 | write_gate / issue_refund: paid=sum(ledger_rows(order_id)); remaining=max(0, entitlement-paid); deny nếu 0, modify phần còn thiếu nếu >0 | Chặn / giới hạn thiệt hại | Ngăn vượt tổng quyền lợi trong mô phỏng tuần tự; production cần transaction/khóa và idempotency key để tránh race | R-S5-after-20261118-163250-181e29 |
+| LLM vượt trần | Đọc ticket dài và checkout_note trước khi biết chi phí toàn luồng; budget 8000 cao hơn trần Ops 1500 | pre_guard: lấy min trần Ops/config, cộng phí nền + extract theo độ dài + 2 policy checks + confirm + decision_note; escalate trước LLM nếu vượt | Phòng ngừa / chuyển người | Ngăn vượt theo biểu giá và luồng mock hiện tại; giá thật/token thật cần đo lại, không cắt nội dung làm mất bằng chứng | R-S5-after-20261118-163250-181e29 |
+| Kho sỉ không sinh lời | Code-only vẫn khiến HCM-B2B tốn 10382đ/ticket > làm tay 10000đ | business.pilot_scope: warehouse, HN/HCM/DN/CT; loại HCM-B2B theo phân công PO | Phạm vi vận hành / kinh doanh | Loại tiền máy thừa cho kho sỉ bằng luồng làm tay; vẫn giữ 60% độ phủ S5, 100% bộ nền | R-S5-after-20261118-163306-de8e77 |
 
 ---
 
 <a id="c8"></a>
+
+**Bằng chứng Người 2 (Bùi Quang Huy):**
+
+- Trước sửa: grade `R-S5-grade-20261118-163037-7c6c78`; prepared `R-S5-prepared-20261118-163038-7c6c78`: pass_rate/pass_k 0.9667; S5-21 hỏng cả 5 seed do chặn cả hoàn một phần; LLM cao nhất 2466đ; HCM-B2B 11326đ/ticket. Guard v1 đã chặn hoàn vượt, nhưng gây under_refund_vnd=60000 (5 seed × 12000đ).
+- Đã dò S5-01, S5-02, S5-21 tại seed 11. S5-02 trước guard ghi thêm 25000đ cho đơn đã hoàn; v2 chặn. S5-21 v2 ghi đúng 12000đ (22000 quyền lợi - 10000 đã trả), không chặn nhầm thành 0đ.
+- Sau sửa: grade `R-S5-grade-20261118-163306-de8e77`, PASS-VISIBLE; integrity/criteria/visible/regression/monitor đều đạt; hidden chưa có trên máy. Ba run kèm grade: base `R-S5-before-20261118-163307-de8e77`, prepared `R-S5-prepared-20261118-163308-de8e77`, after `R-S5-after-20261118-163308-de8e77`.
+- S5 sau thu hẹp: 90/90 lượt đạt, 18/30 ticket/ngày trong phạm vi, độ phủ 0.6; pass_rate/pass_k 1.0, CI95 [1,1]; hoàn sai/hoàn thiếu/lỗi hãng oan/PII đều 0; LLM cao nhất 765đ; cost_per_ticket 3980đ, ROI 1.51; không vi phạm trần, queue_stuck=0.
+- Regression bộ nền: `R-base-after-20261118-163345-de8e77`, 110/110 đạt, không ca mới hỏng, độ phủ 1.0. Public tests: 13/13 OK. Kiểm tra bổ sung bằng bản sao world trong bộ nhớ: hoàn bù 12000 rồi gửi lại bị deny; retry do confirm 429 không ghi trùng; checkout_note 10000 ký tự được chuyển người trước extract; monitors xử lý danh sách rỗng đều bằng 0.
+- Snapshot vòng 1 vẫn nguyên hash `adfce180`; không sửa tiêu chí đã ký. Code v2 giữ guard policy/approval/carrier/PII của v1. Phạm vi chỉ sửa config hiện hành; PO xác nhận và giải thích quyết định Narrow tại C12.
 
 ## C8 · Câu 3.6 · Chỉ số theo dõi mới (thước đo → dữ liệu → cách tính)
 
@@ -342,6 +351,18 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 ---
 
 <a id="c9"></a>
+
+**Bổ sung kỹ thuật của Người 2 — monitor đã triển khai (phần thước đo kinh tế phía trên do PO hoàn thiện):**
+
+| Tên MONITORS | Dữ liệu và cách tính | Bộ nền after / S5 after | Ngưỡng và điểm mù |
+|---|---|---|---|
+| duplicate_refund_attempts | Đếm event guard có kind=duplicate_refund_blocked; không đọc label/pass | 0 / 20 | >0 cần xem retry/gửi lặp; đây là số lần bị chặn, không phải tiền mất |
+| llm_budget_blocks | Đếm trial có event guard kind=llm_budget_blocked (mỗi trial tối đa 1) | 0 / 15 | >0 rà soát text/giá/công người; không đồng nghĩa chi phí thực đã vượt |
+| partial_refund_adjustments | Đếm event kind=partial_refund_adjusted khi modify về phần quyền lợi chưa trả | 0 / 5 | Tín hiệu hoàn bù, không coi là hoàn trùng; cần đối soát nếu tăng bất thường |
+
+Đơn vị là số lần trên toàn bộ 5 seed của report, không phải số khách hoặc ca/ngày độc lập. Khi theo dõi production cần nhóm theo ngày và order_id để điều tra; không suy diễn 20 event là 20 khoản hoàn sai. Trial rỗng trả 0. Cả ba monitor chỉ dùng events, không dùng nhãn. Grade xác nhận mục 6 monitor xanh; tham chiếu `R-S5-grade-20261118-163306-de8e77`.
+
+Nguồn cho PO tính chi phí theo kho: report after `ops.segments` và `by_segment.warehouse`; HN 4277đ, HCM 712đ, DN 743đ, CT 764đ/ticket. Không dùng riêng cost_vnd (tiền máy) thay cho chi phí gồm công người và phân bổ phí trực. HCM-B2B trước thu hẹp 11326đ, sau code-only 10382đ, ngoài phạm vi ở after cuối; không báo chi phí kho bị loại là 0đ hay coi đó là kho đã sửa thành công.
 
 ## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `__________`)
 

@@ -4,10 +4,12 @@
     "daily_refund_cap_vnd": 2000000,
     "cost_budget_per_ticket_vnd": 8000,
     "pilot_scope": {
-      "mode": "all",
+      "mode": "warehouse",
       "warehouses": [
-        "WH-HN-01",
-        "WH-SG-01"
+        "HN",
+        "HCM",
+        "DN",
+        "CT"
       ],
       "percent": 100
     },
