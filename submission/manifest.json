@@ -22,7 +22,7 @@
   "config/switches.json": "7f6b75433f65640f6610a7930ecefae27fc8b1891634803815ef48d9c4a0b457",
   "docs/form-a-criteria.md": "bb50e5da2aee39d49b924af24dc57904b70a532f635f1f578a945cda7a94faff",
   "docs/form-b-evaluation-gates.md": "1cf72759c5b061af247029707a7d0ec96243e8bb4aee280d08a237b738ab9a0c",
-  "docs/form-c-incident.md": "71ecba9d34065c7378e35faf3f54767b62053c29cad7ef1ecea53df16502d097",
+  "docs/form-c-incident.md": "8d19732200ddbf94821c819bfb72cc544910463b45fe60a3d7b599d6f7ab85a7",
   "runs/grade-report.json": "c82ffa55be637681cb30da12e9f9c7aee33b114d4ffb7a93c1d8e0e379a2cd32",
   "runs/grade-report.md": "fecb8d37da225647b0cbc1c666113dc43bb59ffe4d1f15814c940e013d44987d",
   "runs/journal.jsonl": "052964894046a1a9742f336f7cc965d240a7f0a4578dec0245c1bb2f0dfbf44c",
@@ -41,6 +41,6 @@
   "runs/R-S5-prepared-20261118-172527-b21bc7/report.json": "967ee6cbe7757673e8c86c1f3ad4381c51d4308fe31e8170113c985f27ecabeb",
   "runs/R-S5-prepared-20261118-174404-b1c825/report.json": "e2d5b442eccd13a4a0e3331a92a52f848f2e4b731a7ed6b3174a3ea4ab0190dd",
   "runs/R-S5-prepared-20261118-193104-3a2faf/report.json": "b64cf6f93ccdff5ac28f818670bd42616f0ea8ffe02e9e5372ebd7dae1b60442",
-  "submission.json": "9d3d8dcd4c21403055b166e4c1acfcff65647f692ae2ab4e9325dc1aebd804c0"
+  "submission.json": "5ef9c2b3f46c88e02a1aa39bb195624a1e086bdd380548c148b4912100976f9e"
  }
 }
