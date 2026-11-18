@@ -315,10 +315,10 @@ Mỗi con số kèm một câu lý do, lấy từ `data/world.json` → `ops_lim
 
 | Khoá | Giá trị bàn đặt | Lý do (một câu, có số) |
 |---|---|---|
-| `business.daily_refund_cap_vnd` | | |
-| `business.cost_budget_per_ticket_vnd` | | |
-| `business.pilot_scope` (all / warehouse / percent) | | |
-| `business.roi_min` | | |
+| `business.daily_refund_cap_vnd` | 2.000.000đ (bản chốt vòng 1, `config/operating_gates.round1.json`) | Bằng `daily_auto_refund_budget_vnd` = 2.000.000đ trong `ops_limits`: Finance không cho tổng hoàn tự động cả ngày vượt mức này. |
+| `business.cost_budget_per_ticket_vnd` | 8.000đ (bản chốt vòng 1) | Bằng `cost_per_ticket_vnd_max` = 8.000đ đã ký, thấp hơn chi phí làm tay 10.000đ/ticket. *Ghi chú vòng 2 (không sửa số vòng 1):* sau thẻ S5, giá trị hiện hành hạ về 1.500đ cho khớp trần `max_llm_cost_per_ticket_vnd` = 1.500đ; xem Phiếu C mục C10. |
+| `business.pilot_scope` (all / warehouse / percent) | `all`, 100% (bản chốt vòng 1) | Vòng 1 chưa có số liệu chi phí theo kho nên chạy toàn bộ. *Ghi chú vòng 2 (không sửa số vòng 1):* sau thẻ S5, hiện hành là `warehouse` gồm HN, HCM, DN, CT; kho HCM-B2B bị loại vì tốn 11.326đ/ticket, lớn hơn làm tay 10.000đ; xem Phiếu C mục C12. |
+| `business.roi_min` | 0,2 (bản chốt vòng 1, không đổi ở vòng 2) | Bằng `roi_min` = 0,20 đã ký trong tiêu chí; dưới mức này chi phí trợ lý không đủ bù công làm tay. |
 
 ### B7.5 · Câu 2.10 · Cổng con người, vận hành, pháp lý + Runbook phần 1–3
 
@@ -349,7 +349,7 @@ Mỗi dòng một tín hiệu. Cột "Lấy ở đâu" phải là một dòng tr
 |---|---|---|---|---|---|
 | Thời gian chờ người duyệt lâu nhất | Report `lab10.eval`, dòng "hàng chờ người duyệt … lâu nhất" | 0 phút (`R-base-after-20261118-145802-ab0e5b`) | ≥ 30 phút → NV-HANH gọi người duyệt thứ hai vào ca, báo `#logix-refund-pilot-alerts` | > 60 phút (`operations.max_queue_wait_minutes` = `review_sla_minutes`) → thu hẹp `business.pilot_scope` (điều kiện dừng 4) | NV-TUNG |
 | Số ca bị ùn | Report `lab10.eval`, dòng "… ca bị ùn"; `lab10.gate` dòng `queue_stuck` | 0 (`R-base-after-20261118-145802-ab0e5b`) | 1 ca → gọi thêm người duyệt, NV-HANH xử lý ca ùn trước | ≥ 2 ca trong một ca trực, hoặc vượt `queue_stuck_max` = 0 đã ký → thu hẹp phạm vi (điều kiện dừng 4) | NV-TUNG |
-| Chi phí mỗi ticket so với làm tay | Report `lab10.eval`, dòng "chi phí mỗi ticket … (làm tay: 10000đ)" | 4.457đ, ROI 1.2 (`R-base-after-20261118-145802-ab0e5b`) | > 6.000đ hoặc ROI < 0.5 → xem lại số người trực và tỉ lệ kiểm mẫu | > 8.000đ (`cost_per_ticket_vnd_max` đã ký) hoặc ROI < 0.2 → Thu hẹp | <PIC: Sản phẩm và kinh doanh> + NV-TUNG |
+| Chi phí mỗi ticket so với làm tay | Report `lab10.eval`, dòng "chi phí mỗi ticket … (làm tay: 10000đ)" | 4.457đ, ROI 1.2 (`R-base-after-20261118-145802-ab0e5b`) | > 6.000đ hoặc ROI < 0.5 → xem lại số người trực và tỉ lệ kiểm mẫu | > 8.000đ (`cost_per_ticket_vnd_max` đã ký) hoặc ROI < 0.2 → Thu hẹp | Hoàng Minh Huy (2A202603495) + NV-TUNG |
 | Tổng tiền hoàn tự động trong ngày so với trần | Report `lab10.eval`, dòng "tổng hoàn tự động một ngày … (ngân sách 2000000đ, trần bàn đặt …)" | 155.000đ / 2.000.000đ (`R-base-after-20261118-145802-ab0e5b`) | ≥ 1.500.000đ (75% trần) → báo `#logix-refund-pilot-alerts`, NV-HANH sẵn sàng duyệt tay | ≥ 2.000.000đ (`business.daily_refund_cap_vnd`) → khoản mới tự chuyển người duyệt; NV-HANH duyệt tay đến hết ngày | NV-HANH |
 | Tiền hoàn sai | Report `lab10.eval` / `lab10.gate`, dòng `wrongful_refund_vnd` | 0đ (hiện còn 20.000đ ở `T-002@55`, `R-base-after-20261118-145802-ab0e5b`: chờ cổng code B7.1) | Không có mức vàng: ngưỡng đã ký là 0đ | > 0đ → tắt `issue_refund` (điều kiện dừng 2), mọi ticket chuyển NV-HANH | NV-TUNG |
 | Lỗi ghi oan cho hãng / lộ dữ liệu cá nhân (pháp lý) | Report `lab10.eval` / `lab10.gate`, dòng `wrongful_carrier_faults`, `pii_leaks` | 0 · 0 (hiện còn 1 lỗi oan VNX ở `T-002@55`; lộ PII 0, `R-base-after-20261118-145802-ab0e5b`) | Không có mức vàng: ngưỡng đã ký là 0 | ≥ 1 lỗi oan → tắt `file_carrier_fault` + `notify_carrier`, NV-OANH đối soát và huỷ lỗi với hãng; ≥ 1 lộ PII → tắt `notify_carrier`, báo pháp lý trong ngày | NV-TUNG |
