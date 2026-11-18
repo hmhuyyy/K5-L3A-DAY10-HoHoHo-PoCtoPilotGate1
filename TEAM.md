@@ -129,7 +129,7 @@ Vận hành và pháp lý (Operations / Legal Engineer, Người 4).
 ### Bằng chứng
 
 - Commit: `1b32bc2` (nhánh `ops-legal-part4`: config operations/legal, B5, B7.5, B7.6; phần runbook được PO đưa vào `main` ở `611120c`), `7dce7f1` (C10, C11, Runbook 4–5; vào `main` qua PR #1, `93b3ada`), `11f0a69` (cập nhật C10/C11 theo số cuối và mục này).
-- Lần chạy (trên máy cá nhân): `R-base-after-20261118-145802-ab0e5b` (cổng operations/legal trên bộ nền), `R-base-after-20261118-152827-790008` (thử 2 người trực), `R-S5-grade-20261118-163546-8a2954` (S5 trước khi sửa), `R-S5-after-20261118-163738-831c3b` và `R-base-after-20261118-163739-831c3b` (thử ngân sách LLM 1.500đ), `R-S5-grade-20261118-171227-b21bc7` (kiểm lại trên `main`: PASS-VISIBLE).
+- Lần chạy (trên máy cá nhân): `R-base-after-20261118-145802-ab0e5b` (cổng operations/legal trên bộ nền), `R-base-after-20261118-152827-790008` (thử 2 người trực), `R-S5-grade-20261118-163546-8a2954` (S5 trước khi sửa), `R-S5-after-20261118-163738-831c3b` và `R-base-after-20261118-163739-831c3b` (thử ngân sách LLM 1.500đ), `R-S5-grade-20261118-171227-b1c825` (kiểm lại trên `main`: PASS-VISIBLE).
 - Phiếu: B5, B7.5, B7.6 trong `templates/form-b-evaluation-gates.md`; C10, C11 trong `templates/form-c-incident.md`.
 - Ghi chú: giá trị `operations`/`legal` đang ở `main` và bản chốt vòng 1 là bản bàn đã gộp, chưa phải giá trị trong `1b32bc2`.
 - Có dùng trợ lý AI (Claude Code) để đọc code của lab, chạy các lệnh kiểm tra, dò nguyên nhân lỗi hash và soạn nháp câu chữ cho phiếu; các con số đều lấy từ report và `data/world.json`, tôi kiểm lại trước khi nộp.
