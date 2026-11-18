@@ -10,8 +10,8 @@
   "decision_v1": "Tiếp tục",
   "decision_v2": "Thu hẹp",
   "three_lines": {
-    "environment_assumption": "Thiết kế giả định độ dài nội dung ticket tương đối đồng đều giữa các kho — sai ngoài thực tế vì kho B2B (sỉ) có ticket nhiều SKU, nội dung dài gấp 10–20 lần kho lẻ, đẩy LLM cost lên 11326 đ so với 663–1319 đ của kho thông thường.",
-    "reduce_or_prevent": "Chỉ GIẢM. Cổng loại kho HCM-B2B ngăn được ROI âm cho phân khúc đó, nhưng không ngăn được LLM cost cao cho ticket dài ở các kho khác (2466 đ > trần 1500 đ). Guard duplicate refund giảm nhưng chưa ngăn hẳn (S5-21 vẫn hỏng ở mọi seed).",
-    "measure_in_pilot": "Cần đo (a) phân phối độ dài ticket theo kho và loại đơn thật, (b) chi phí LLM thực tế cho từng phân khúc (token thật khác token mock), (c) tần suất duplicate refund thật để xác nhận guard đủ chặt, và (d) chi phí tay thực tế cho B2B để so sánh đúng ngưỡng có lời."
+    "environment_assumption": "Thiết kế giả định độ dài nội dung ticket tương đối đồng đều giữa các kho và khách chỉ khiếu nại 1 lần — sai ngoài thực tế vì kho B2B (sỉ) có ticket nhiều SKU, nội dung dài gấp 10–20 lần kho lẻ, đẩy LLM cost lên 11.326đ so với 663–1.319đ của kho thông thường.",
+    "reduce_or_prevent": "Cổng cấu hình loại kho HCM-B2B NGĂN được chi phí âm cho kho sỉ; cổng write_gate NGĂN hoàn trùng vượt mức quyền lợi trong luồng tuần tự; nhưng pre_guard ước tính chi phí chỉ GIẢM nguy cơ vượt trần LLM vì giá token thật và độ dài phản hồi thực tế ngoài pilot có thể biến động.",
+    "measure_in_pilot": "Cần đo (a) phân phối độ dài ticket và số lượng SKU theo từng kho thực tế, (b) chi phí token LLM thực tế khi gọi API bên thứ ba, (c) tần suất gửi khiếu nại lặp đa kênh và hoàn tay song song của CSKH, và (d) chi phí xử lý thủ công thực tế của đơn hàng B2B."
   }
 }
