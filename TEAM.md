@@ -69,7 +69,9 @@ Kỹ sư cổng (AI Engineer - Người 2).
 
 ### Bằng chứng
 
-- File: `lab10/guards.py`, `lab10/monitors.py`.
+- File: `lab10/guards.py`, `lab10/guards_round1.py`; monitor mới chưa thực hiện (thuộc vòng 2).
+- Prepared: `R-base-prepared-20261118-151525-7c6c78`, hash `adfce180`; 110/110 đạt, không regression; 13 public tests OK.
+- Có dùng trợ lý AI Codex để đọc trace, triển khai guard, chạy kiểm thử và ghi bằng chứng vòng 1.
 
 ### Exit ticket
 
