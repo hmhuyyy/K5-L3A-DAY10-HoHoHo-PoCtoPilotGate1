@@ -47,19 +47,21 @@ Chạy **trước khi sửa bất cứ thứ gì**:
 python3 -m lab10.grade --incident Sx
 ```
 
-- Mã lần chạy grade: `__________` · base: `__________` · prepared: `__________`
-- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): …
-- Khối kinh doanh và vận hành còn dòng nào vượt trần: …
+- Mã lần chạy grade: `R-S5-grade-20261118-163414-9216ef` · base: `R-S5-before-20261118-163415-9216ef` · prepared: `R-S5-prepared-20261118-163415-9216ef`
+- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): Cổng vòng 1 đã **loại bỏ hoàn sai 890.000 đ** (base 890k → prepared 0), **loại bỏ 20 lỗi ghi oan hãng** (base 20 → prepared 0), tăng pass_rate từ 0.8333 → 0.9667 (visible). Trên bộ nền: hoàn sai từ 20.000 đ → 0, wrongful_carrier_faults từ 1 → 0.
+- Khối kinh doanh và vận hành còn dòng nào vượt trần: **(1)** tiền LLM ticket đắt nhất 2466 đ > trần 1500 đ; **(2)** kho HCM-B2B: mỗi ticket tốn 11326 đ > làm tay 10000 đ; **(3)** pass_rate visible còn 0.9667 < 1.0 (ticket S5-21 bị hoàn trùng).
 
 **Mở lại pre-mortem (Phiếu B mục B6), viết bằng bút khác màu.** Với thẻ S1, S3, S4, S5 đây là một phần của phần riêng theo thẻ.
 
-- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? …
-- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? …
+- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? **Kinh doanh** (chi phí vận hành mỗi ticket vượt ngưỡng có lời) + **Kỹ thuật** (LLM đọc ticket dài tốn chi phí quá cao, duplicate refund không bị chặn từ trước).
+- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? **Lý do hoàn sai và oan hãng** đã có trong pre-mortem → cổng vòng 1 đỡ được toàn bộ (hoàn sai và oan hãng = 0 ở prepared). **Lý do chi phí kho B2B và LLM cost quá cao** chưa có trong pre-mortem vòng 1 — vì bàn không phân tích chi phí theo từng kho/loại đơn khi viết pre-mortem, chỉ tập trung vào đúng/sai của quyết định hoàn tiền.
 - Lý do còn thiếu, thêm bây giờ:
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được bằng gì (trace / data / config nào) |
 |---|---|---|
-| | | |
+| Kho B2B có ticket nội dung rất dài (nhiều SKU), LLM cost tốn 11326 đ/ticket > 10000 đ làm tay → mỗi ticket trợ lý xử lý thực chất đắt hơn không dùng trợ lý | Kinh doanh | report.json → `by_segment` → `kho HCM-B2B` → `chi phí 11326đ > làm tay`; trace S5-50 xác nhận token rất dài |
+| Ticket nội dung dài đẩy chi phí LLM đơn lẻ lên 2466 đ, vượt trần 1500 đ đã thống nhất | Kỹ thuật | report grade: "có ticket tốn 2466đ tiền LLM > trần 1500đ"; S5-50@11, S5-70@11 |
+| Duplicate refund không bị chặn hoàn toàn ở mọi seed (S5-21 vẫn hỏng ở after) | Kỹ thuật | grade visible: ticket còn hỏng ['S5-21@11','S5-21@22','S5-21@33','S5-21@44','S5-21@55'] |
 
 ---
 
@@ -220,8 +222,9 @@ Mở lại Phiếu B mục B3. Ghi ở đây những dòng đổi so với vòng
 
 | Trường / bảng | Vòng 1 bàn đã coi là (nguồn sự thật / bản sao / chưa hỏi) | Sau khi đọc thẻ thì thấy | Ảnh hưởng tới tiền hay lỗi hãng thế nào |
 |---|---|---|---|
-| | | | |
-| | | | |
+| `warehouse_id` của đơn | Chưa hỏi — bàn không phân tích chi phí theo kho | Là trường quyết định độ phức tạp của ticket (B2B = nhiều SKU, nội dung dài hơn rất nhiều) | Kho HCM-B2B đẩy LLM cost lên 11326 đ/ticket, vượt chi phí làm tay 10000 đ → ROI âm cho phân khúc này |
+| `cost_vnd` trong trial | Chưa hỏi — bàn không có chỉ số theo dõi chi phí mỗi ticket | Là tiền LLM + nền tảng thực tế tốn cho mỗi ticket; trần đã thống nhất là 1500 đ | Ticket dài (S5-50, S5-70) vượt trần 1500 đ → báo hiệu nhóm ticket không có lời về chi phí máy |
+| `ledger` (sổ cái trùng) | Bản sao — dùng để kiểm tra hoàn trùng | Vòng 1 guard đã thêm, nhưng S5-21 vẫn pass qua một số seed → guard chưa đủ chặt ở mọi điều kiện | Hoàn trùng 2-3 lần gây mất tiền thật (không phải chi phí vận hành) |
 
 ---
 
@@ -328,16 +331,18 @@ python3 -m lab10.grade --incident Sx
 Thêm **ít nhất một hàm** trong `lab10/monitors.py` và đăng ký vào `MONITORS`. Chỉ số `escalation_rate` có sẵn không tính là chỉ số mới.
 Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket theo kho (tách tiền máy, công người, tiền mất).
 
-| | Chỉ số theo dõi mới của bàn |
-|---|---|
-| **Tên trong `MONITORS`** | |
-| **Bước / hành vi được đo** | |
-| **Thước đo** (một câu, có đơn vị) | |
-| **Dữ liệu** (trường nào của trial, không có nhãn) | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | |
-| **Khung thời gian / ngưỡng báo động** | |
-| **Điểm mù** (chỉ số này KHÔNG thấy gì) | |
-| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | |
+| | Chỉ số 1: chi phí LLM trung bình mỗi ticket | Chỉ số 2: tỉ lệ ticket vượt trần LLM |
+|---|---|---|
+| **Tên trong `MONITORS`** | `avg_cost_per_ticket_vnd` | `pct_tickets_over_llm_cap` |
+| **Bước / hành vi được đo** | Mỗi lần trợ lý xử lý một ticket, hệ thống ghi lại `cost_vnd` (tiền LLM + nền tảng). Monitor tính trung bình. | Đếm tỉ lệ ticket có `cost_vnd > 1500 đ` (trần đã thống nhất với CFO). |
+| **Thước đo** (một câu, có đơn vị) | Tiền LLM + platform trung bình mỗi ticket, đơn vị đồng (đ). | Phần trăm ticket vượt trần LLM 1500 đ (giá trị 0–1). |
+| **Dữ liệu** (trường nào của trial, không có nhãn) | `trial["cost_vnd"]` — không cần nhãn đúng/sai. | `trial["cost_vnd"]` — so sánh với ngưỡng 1500 đ. |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | `sum(cost_vnd) / max(1, N)`. Bỏ qua trial thiếu `cost_vnd` (None → 0). | `count(cost_vnd > 1500) / max(1, N)`. Ca thiếu dữ liệu tính là 0 đ (không vượt trần). |
+| **Khung thời gian / ngưỡng báo động** | Tính theo batch ngày. Báo động nếu trung bình > **5000 đ** (50% chi phí làm tay) hoặc > **10000 đ** (ngang làm tay). | Báo động nếu tỉ lệ > **10%** (tức 1 trong 10 ticket vượt trần LLM — cần điều tra loại ticket gây ra). |
+| **Điểm mù** (chỉ số này KHÔNG thấy gì) | Không thấy phân phối (có thể 1 ticket rất đắt kéo lên mà phần lớn rẻ). Không tách chi phí máy vs công người. | Không thấy *mức độ* vượt (vượt 1 đ hay vượt 10x). Không phân biệt được do ticket dài hay do model gọi nhiều lần. |
+| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | Bộ nền: **638 đ**/ticket · Thẻ S5 (before): **1083 đ**/ticket · Thẻ S5 (after, không có HCM-B2B): **993 đ**/ticket | Bộ nền: **0%** · Thẻ S5 (before): **30%** · Thẻ S5 (after): **16.7%** |
+
+> [!NOTE] Monitor sáng đèn trên S5: `avg_cost_per_ticket_vnd` tăng từ 638 đ (nền) lên 1083 đ (thẻ S5 trước sửa) — gấp 1.7× — và `pct_tickets_over_llm_cap` từ 0% (nền) lên 30% (thẻ S5), xác nhận kho HCM-B2B là nguồn gốc chi phí bất thường.
 
 ---
 
@@ -418,30 +423,30 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 
 | | **v2** (phút 185–200, SAU sự cố) |
 |---|---|
-| Commit ký tiêu chí | phải giống v1 |
-| Hash chốt cổng vòng 1 | phải giống v1 |
-| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: ________ · prepared: ________ · after: ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Khối "theo kho và hãng" trong output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt kho nào / còn bao nhiêu phần trăm / mấy người trực, và ticket bị cắt đi đâu | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Commit ký tiêu chí | `5f494889c5db` (giống v1) |
+| Hash chốt cổng vòng 1 | `adfce180` (giống v1) |
+| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: `R-S5-before-20261118-163415-9216ef` · prepared: `R-S5-prepared-20261118-163415-9216ef` · after: `R-S5-after-20261118-163415-9216ef` |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | **Có.** Tiền LLM ticket đắt nhất = 2466 đ > trần 1500 đ. Ticket S5-21 vẫn hỏng ở mốc after (pass_rate visible = 0.9667 < 1.0). Sau khi thu hẹp, kho HCM-B2B không còn vượt trần (chi phí kho đó = 0 ticket trong after). |
+| Kho hoặc hãng có số xấu nhất: **HCM-B2B** (chi phí 11326 đ > làm tay 10000 đ). Nếu chỉ nhìn phân khúc này, quyết định có đổi không? | Có — phân khúc HCM-B2B cho ROI âm (chi phí trợ lý > chi phí tay). Đây là lý do chính dẫn đến quyết định **Thu hẹp** (loại bỏ HCM-B2B khỏi phạm vi pilot). |
+| Quyết định (khoanh một) | **Thu hẹp** ✅ |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-S5-grade-20261118-163414-9216ef`: integrity ✅, criteria ✅, regression ✅, monitor ✅. visible ❌ còn 1 vấn đề (LLM cost 2466 > 1500 đ, ticket S5-21 chưa sạch). |
+| Bằng chứng 2 | Phân khúc kho HCM-B2B: chi phí 11326 đ/ticket > làm tay 10000 đ → ROI âm cho phân khúc này → phải loại khỏi pilot. Sau khi loại: chi phí trung bình visible giảm từ 6126 đ → 2660 đ, ROI tăng từ 0.63 → 2.76. |
+| Bằng chứng 3 | Monitor `pct_tickets_over_llm_cap` sáng đèn: 30% ticket trên thẻ S5 vượt trần LLM (so với 0% trên bộ nền). Cho thấy vấn đề chi phí là có hệ thống, không phải ngẫu nhiên. |
+| Khớp dòng nào trong `decision_rule` đã ký? | Thu hẹp vì: (1) còn dòng vượt trần LLM, (2) pass_rate visible chưa đạt 1.0, (3) một phân khúc (HCM-B2B) có ROI âm. Thu hẹp là quyết định đúng theo tiêu chí "không đủ căn cứ để chọn Tiếp tục". |
+| Nếu Thu hẹp: cắt kho nào / còn bao nhiêu phần trăm / mấy người trực, và ticket bị cắt đi đâu | Cắt kho **HCM-B2B** khỏi phạm vi pilot. Độ phủ: 100% → 60% (còn CT, DN, HCM, HN). **1 người trực**, capacity 6 ticket/giờ — không đổi vì hàng chờ = 0. Ticket HCM-B2B chuyển về xử lý tay như trước PoC. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | — |
+| Nếu Dừng: bài học ghi lại | — |
+| Ngày quyết định lại (trừ khi Dừng) | Sau 2 tuần pilot (loại B2B): đánh giá lại LLM cost và pass_rate. Mục tiêu: LLM cost < 1500 đ cho 95% ticket, pass_rate ≥ 0.97. |
+| PIC ký | NguyenTruongThanh-2A202603512 (Product Owner) |
 
 **Chỉ ở v2**
-- Quyết định đổi hay giữ so với v1? Vì con số nào: …
-- Report tự kiểm tra: mã lần chạy `__________` · ô nào còn đỏ (nguyên nhân × tầng): …
-- Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: …
-- Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: …
-- Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: …
+- Quyết định đổi hay giữ so với v1? Vì con số nào: **Đổi từ "Tiếp tục" (v1) sang "Thu hẹp" (v2)**. Lý do: sự cố S5 lộ ra kho HCM-B2B có chi phí 11326 đ/ticket > 10000 đ làm tay → ROI âm cho phân khúc này. Ngoài ra, ticket S5-21 bị hoàn trùng và LLM cost 2466 đ > trần 1500 đ — những vấn đề này không nhìn thấy ở vòng 1 vì bàn chưa phân tích chi phí theo kho.
+- Report tự kiểm tra: mã lần chạy `R-S5-grade-20261118-163414-9216ef` · ô còn đỏ: visible (LLM cost 2466 đ > 1500 đ, ticket S5-21 hỏng ở 5 seed).
+- Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: Đỡ được toàn bộ hoàn sai (890k đ → 0) và oan hãng (20 → 0). **Bỏ sót**: chi phí LLM theo kho (không có monitor chi phí), chi phí B2B (không phân tích phân khúc), duplicate refund ở mọi seed.
+- Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: Report ghi **"KHÔNG đủ căn cứ để chọn 'Tiếp tục'"**. Quyết định **Thu hẹp** của bàn **khớp** — có lý do và con số rõ ràng.
+- Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: Chưa đo **chi phí thực tế khi vận hành B2B tay** (có thể > 10000 đ nếu thêm kiểm tra phiếu xuất). Nếu chi phí tay B2B > 11326 đ → trợ lý vẫn có lời, và quyết định có thể là "Cải tiến thêm" thay vì cắt hoàn toàn.
 
 **Ba dòng bắt buộc** (chép nguyên ba câu này sang `submission/submission.json`, mục `three_lines`)
-1. Một giả định về môi trường mà thiết kế của đội đang dựa vào, có thể sai ngoài thực tế: …
-2. Gate của đội chỉ GIẢM khả năng hay thực sự NGĂN được tác hại? Vì sao: …
-3. Vì data là mock, cần đo lại gì trong pilot thật trước Bước đánh giá 2: …
+1. Một giả định về môi trường mà thiết kế của đội đang dựa vào, có thể sai ngoài thực tế: **Thiết kế giả định độ dài nội dung ticket tương đối đồng đều giữa các kho — sai ngoài thực tế vì kho B2B (sỉ) có ticket nhiều SKU, nội dung dài gấp 10–20 lần kho lẻ, đẩy LLM cost lên 11326 đ so với 663–1319 đ của kho thông thường.**
+2. Gate của đội chỉ GIẢM khả năng hay thực sự NGĂN được tác hại? Vì sao: **Chỉ GIẢM.** Cổng loại kho B2B ngăn được ROI âm cho phân khúc đó, nhưng không ngăn được LLM cost cao cho ticket dài ở các kho khác (2466 đ > 1500 đ). Guard duplicate refund giảm nhưng chưa ngăn hẳn (S5-21 vẫn hỏng ở mọi seed).
+3. Vì data là mock, cần đo lại gì trong pilot thật trước Bước đánh giá 2: **Cần đo (a) phân phối độ dài ticket theo kho và loại đơn thật, (b) chi phí LLM thực tế cho từng phân khúc (token thật khác token mock), (c) tần suất duplicate refund thật để xác nhận guard đủ chặt, và (d) chi phí tay thực tế cho B2B để so sánh đúng ngưỡng có lời.**

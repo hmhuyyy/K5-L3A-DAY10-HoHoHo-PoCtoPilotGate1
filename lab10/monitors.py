@@ -19,7 +19,28 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def avg_cost_per_ticket_vnd(trials):
+    """Chi phí LLM trung bình mỗi ticket (đ).
+    Sáng đèn khi kho B2B hoặc ticket dài đẩy chi phí vượt ngưỡng làm tay.
+    Ngưỡng cảnh báo: > 1500đ (trần LLM) hoặc > 10000đ (chi phí làm tay).
+    """
+    costs = [t["cost_vnd"] for t in trials if t.get("cost_vnd") is not None]
+    return sum(costs) / max(1, len(costs))
+
+
+def pct_tickets_over_llm_cap(trials):
+    """Tỉ lệ ticket có tiền LLM vượt trần 1500đ (phần trăm, 0–1).
+    Phát hiện nhóm ticket nội dung dài (kho sỉ B2B) đẩy chi phí máy quá cao.
+    Sáng đèn trên S5 vì kho HCM-B2B có ticket tốn 11326đ, ticket thường tốn 2466đ > 1500đ.
+    """
+    LLM_CAP = 1500
+    over = sum(1 for t in trials if (t.get("cost_vnd") or 0) > LLM_CAP)
+    return over / max(1, len(trials))
+
+
 MONITORS = {
-    "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "escalation_rate": escalation_rate,          # có sẵn; KHÔNG tính là metric mới của đội
+    "avg_cost_per_ticket_vnd": avg_cost_per_ticket_vnd,       # Mới · S5: chi phí LLM trung bình
+    "pct_tickets_over_llm_cap": pct_tickets_over_llm_cap,     # Mới · S5: tỉ lệ ticket vượt trần LLM
 }
 STARTER_MONITORS = ("escalation_rate",)
