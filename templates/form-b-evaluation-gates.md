@@ -29,7 +29,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | | base · base | (baseline, chưa có cổng) | | | | | |
+| 1 | R-base-before-20261118-143735-d2242a | base · base | (baseline, chưa có cổng) | 0.9909 [0.9727; 1.0] | 0.9545 | 20.000đ · 1 lỗi · 0 PII | 0.2273 | Đạt chi phí (4.203đ) và ROI (1.34) nhưng vi phạm tiêu chí an toàn (hoàn sai 20k, phạt oan 1 lỗi hãng VNX do ticket T-002@55). |
 | 2 | | base · after | (cổng vòng 1, thử trước khi chốt) | | | | | |
 | 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
 | 4 | | | | | | | | |
@@ -45,18 +45,18 @@ python3 -m lab10.eval --suite base --stage base --note "baseline"
 python3 -m lab10.gate --run runs/<mã lần chạy>/report.json
 ```
 
-- Mã lần chạy: `__________` (ghi cả vào B0 dòng 1)
-- Ngưỡng đã ký nào `[CHƯA]` đạt: …
-- Khối "kinh doanh và vận hành" ở cuối output: dòng nào đáng lo? …
-- Khối "theo kho và hãng": kho hoặc hãng nào có số xấu nhất? …
+- Mã lần chạy: `R-base-before-20261118-143735-d2242a` (ghi cả vào B0 dòng 1)
+- Ngưỡng đã ký nào `[CHƯA]` đạt: `wrongful_refund_vnd` (thực tế 20.000đ > 0đ) và `wrongful_carrier_faults` (thực tế 1 lỗi > 0 lỗi).
+- Khối "kinh doanh và vận hành" ở cuối output: dòng nào đáng lo? Hoàn sai ngày tệ nhất 20.000đ; chi phí nhóm đơn không xác định kho (`?`) tốn 10.359đ/ticket (cao hơn làm tay 10.000đ).
+- Khối "theo kho và hãng": kho hoặc hãng nào có số xấu nhất? Kho HCM (pass_rate 0.96, hoàn sai 20.000đ, 1 lỗi oan hãng) và hãng VNX (pass_rate 0.9714, 1 lỗi oan).
 
 **Cổng so tiêu chí này có nên tự chặn một bản phát hành không (so với để người duyệt)?**
 
 | Lý lẽ ủng hộ tự chặn | Lý lẽ phản đối |
 |---|---|
-| | |
+| Đảm bảo kỷ luật kỹ thuật tuyệt đối, ngăn chặn lập tức rủi ro tài chính (thất thoát tiền) và pháp lý (kiện tụng/phạt oan đối tác) trước khi bản build kịp triển khai ra môi trường thật. | Có thể phát sinh false alarm do dữ liệu test nhiễu hoặc các trường hợp ngoại lệ kinh doanh mà AI Agent đã xử lý hợp lý nhưng chưa cập nhật test case. |
 
-Khuyến nghị (khoanh một): **tự chặn · người duyệt · kết hợp**. Vì: …
+Khuyến nghị (khoanh một): **kết hợp**. Vì: Tự động chặn cứng (hard stop) đối với các vi phạm an toàn bắt buộc (`wrongful_refund_vnd > 0`, `wrongful_carrier_faults > 0`, `pii_leaks > 0`); đối với các ngưỡng hiệu năng mềm (`pass_rate`, `escalation_rate`, chi phí) thì chuyển sang hội đồng người duyệt (PO + Ops Lead) để đánh giá trade-off.
 
 ---
 
@@ -120,24 +120,24 @@ Gợi ý: mở `data/world.json` phần `policies`, `orders[].parcels`, `ops_lim
 
 | Mục | Điền cho trợ lý hoàn tiền |
 |---|---|
-| Người dùng | |
-| Việc người dùng cần làm xong | |
-| Đầu ra của hệ thống (kể cả các lệnh ghi) | |
-| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | |
-| Trường then chốt quyết định tiền và lỗi hãng | |
-| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | |
-| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | |
-| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | |
-| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | |
+| Người dùng | Khách hàng mua sắm trên nền tảng thương mại điện tử gửi yêu cầu/khiếu nại về đơn giao trễ. |
+| Việc người dùng cần làm xong | Nhận được giải quyết thoả đáng: hoàn phí vận chuyển/tiền hàng đúng chính sách hoặc được giải thích rõ ràng lý do từ chối. |
+| Đầu ra của hệ thống (kể cả các lệnh ghi) | Lệnh hoàn tiền (`issue_refund`), biên bản phạt hãng (`file_carrier_fault`), thông báo gửi hãng (`notify_carrier`), tin nhắn trả lời khách (`send_reply`). |
+| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | `customers`, `orders`, `policies`, `carriers`, `ops_limits`, `ops_facts`, `approvals`. |
+| Trường then chốt quyết định tiền và lỗi hãng | `orders[].parcels[].carrier_id`, `orders[].parcels[].delay`, `tracking.actual_delay_days`, `tracking.cause`, `policies[].compensation_vnd`. |
+| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | `orders[].parcels[].delay` & `tracking.cause`: Nguồn sự thật (hệ thống tracking DB / máy quét trạm bưu cục ghi nhận). Lời khách tự khai trong ticket: Bản sao/claim chưa kiểm chứng. |
+| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | Đơn nhiều kiện (`parcels` là mảng), kiện giao ngày khác nhau; trường `cause_recorded` có thể là `false`; ngày tháng chuẩn ISO YYYY-MM-DD. |
+| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | Bưu tá quét trễ (giao xong hôm nay nhưng 2 ngày sau mới quét), khách tự khai phóng đại số ngày trễ, ngày lễ tết thời tiết xấu (force majeure) không ghi nhận kịp vào DB. |
+| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | "Hệ thống lấy độ trễ từ dữ liệu quét thực tế của bưu tá trên máy quét trạm hay chỉ nghe khách hàng tự nhắn trong chat?" |
 
 **Tóm lại (điền vào chỗ trống):**
-Trợ lý dùng `__________`, `__________`, `__________` để giúp `__________` làm được `__________`.
-Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `__________`, `__________`.
-Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `__________`. Dấu hiệu nhìn thấy sớm nhất: `__________`.
+Trợ lý dùng `orders[].parcels`, `tracking DB`, `policies` để giúp `khách hàng và CSKH` làm được `giải quyết khiếu nại hoàn tiền giao trễ tự động và chính xác`.
+Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `tracking.db_delay_days`, `tracking.cause`.
+Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `thời điểm bưu tá quét cập nhật trạng thái kiện hàng và lời khai chủ quan của khách`. Dấu hiệu nhìn thấy sớm nhất: `sự xuất hiện của sự kiện model_override (độ trễ khách khai khác độ trễ DB)`.
 
-**Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `____` · đổi ngày nào `____` ·
-trường nào cho thấy `____` · con số nào của Bản tiêu chí bị ảnh hưởng `____`.
-Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `__________`
+**Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `Hành vi giao vận mùa cao điểm Tết và tỷ lệ quét chậm của bưu tá tăng mạnh` · đổi ngày nào `2026-12-15` ·
+trường nào cho thấy `tracking.db_delay_days lệch so với delivered_date thực tế` · con số nào của Bản tiêu chí bị ảnh hưởng `wrongful_refund_vnd và wrongful_carrier_faults`.
+Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `Đầu vào đổi (Data Drift: dữ liệu tracking chậm cập nhật hơn khiếu nại của khách). Chỉ số phát hiện: tỷ lệ chênh lệch giữa ngày khách báo và timestamp DB (monitor model_override_rate).`
 
 **Ví dụ một dòng (đừng chép):** trường then chốt `parcels[].delivered_date` · bản ghi do máy quét ở điểm phát tạo ra, là nguồn
 sự thật về ngày giao · lệch khi điểm phát quét sót hoặc nhập bù bằng tay.
