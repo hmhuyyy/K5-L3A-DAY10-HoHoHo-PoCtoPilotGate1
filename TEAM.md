@@ -113,21 +113,26 @@ Một điều còn chưa chắc: Phương pháp giả lập các corner-case hi�
 
 ### Phần việc phụ trách
 
-Vận hành và pháp lý (Operations / Legal Engineer - Người 4).
-- Cấu hình vận hành và pháp lý trong `config/operating_gates.json` (mục `operations` và `legal`).
-- Lập Checklist 9 nhóm việc go-live (Phiếu B mục B5).
-- Xây dựng Runbook xử lý sự cố hàng chờ và kế hoạch ứng phó giờ cao điểm (B7.5, B7.6).
-- Hoàn thiện hồ sơ nộp bài `submission/submission.json`.
+Vận hành và pháp lý (Operations / Legal Engineer, Người 4).
+- `config/operating_gates.json` mục `operations` và `legal` (đề xuất giá trị vòng 1; xem ghi chú ở Bằng chứng).
+- Phiếu B: B5 (checklist 9 nhóm việc, lần 1), B7.5 (Runbook phần 1–3), B7.6 (Giờ cao điểm).
+- Phiếu C: C10 (Risk register), C11 (cập nhật checklist, Runbook phần 4–5).
+- Cùng PO kiểm `submission/submission.json` và gom bài nộp.
 
 ### Đóng góp cụ thể
 
-- Thiết lập giới hạn vận hành ca trực (1 người trực duyệt tối đa 6 ca/giờ, SLA hàng chờ < 60 phút).
-- Quy định các trường dữ liệu PII tuyệt đối không gửi sang bên thứ 3 (`phone`, `customer_name`, `street`).
-- Xây dựng checklist 9 nhóm việc rõ ràng có chỉ định PIC cụ thể.
+- Đặt cổng vận hành và pháp lý từ `data/world.json`: PIC `NV-TUNG` (người giữ công tắc), người duyệt `NV-HANH` (đúng người nhân viên tin theo `staff_behavior.trust_conditions`), 1 người trực, 6 ca/giờ (`ops_facts`), chờ tối đa 60 phút (`ops_limits.review_sla_minutes`), 4 điều kiện dừng, bật ghi chú quyết định và kiểm mẫu 10%; chặn `recipient_contact`, `customer_note` gửi hãng; chỉ ghi lỗi hãng khi tracking có nguyên nhân.
+- Viết Runbook 1–3 và Giờ cao điểm có số đo thật: thử 2 người trực rồi trả lại 1 người để đo chi phí (4.457đ → 5.821đ/ticket, ROI 1.2 → 0.69).
+- Thẻ S5: viết 6 dòng Risk register (hoàn trùng, kho sỉ HCM-B2B, tiền LLM, hoàn thiếu `S5-21`, hash bản chốt vòng 1, giờ trong nhật ký) và Runbook 4–5 (khiếu nại hoàn trùng, thu hồi và đối soát sổ cái); cập nhật lại theo số cuối sau khi bàn sửa cổng.
+- Phát hiện và báo cho bàn: (1) cổng vòng 1 từ chối cả đơn đã hoàn một phần làm `S5-21` hỏng, cần hoàn phần còn thiếu; (2) `guards_round1.py` được chốt khi tệp còn đuôi dòng CRLF nên hash lệch `round1.lock` trên bản clone sạch; (3) `core.autocrlf=true` làm đổi hash tiêu chí trên máy Windows; (4) mã kho `WH-HN-01`, `WH-SG-01` không có trong `data/world.json`; (5) `cost_budget_per_ticket_vnd` = 8.000 cao hơn trần LLM 1.500đ (đã thử 1.500: ticket đắt nhất 2.466đ → 764đ, bộ nền không hỏng ca nào).
 
 ### Bằng chứng
 
-- File: `config/operating_gates.json` (mục `operations`, `legal`), mục B5, B7 Phiếu B, `submission/submission.json`.
+- Commit: `1b32bc2` (nhánh `ops-legal-part4`: config operations/legal, B5, B7.5, B7.6; phần runbook được PO đưa vào `main` ở `611120c`), `7dce7f1` (C10, C11, Runbook 4–5; vào `main` qua PR #1, `93b3ada`), cùng commit cập nhật C10/C11 và mục này.
+- Lần chạy (trên máy cá nhân): `R-base-after-20261118-145802-ab0e5b` (cổng operations/legal trên bộ nền), `R-base-after-20261118-152827-790008` (thử 2 người trực), `R-S5-grade-20261118-163546-8a2954` (S5 trước khi sửa), `R-S5-after-20261118-163738-831c3b` và `R-base-after-20261118-163739-831c3b` (thử ngân sách LLM 1.500đ), `R-S5-grade-20261118-171227-b21bc7` (kiểm lại trên `main`: PASS-VISIBLE).
+- Phiếu: B5, B7.5, B7.6 trong `templates/form-b-evaluation-gates.md`; C10, C11 trong `templates/form-c-incident.md`.
+- Ghi chú: giá trị `operations`/`legal` đang ở `main` và bản chốt vòng 1 là bản bàn đã gộp, chưa phải giá trị trong `1b32bc2`.
+- Có dùng trợ lý AI (Claude Code) để đọc code của lab, chạy các lệnh kiểm tra, dò nguyên nhân lỗi hash và soạn nháp câu chữ cho phiếu; các con số đều lấy từ report và `data/world.json`, tôi kiểm lại trước khi nộp.
 
 ### Exit ticket
 
